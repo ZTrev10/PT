@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#f7fbf8">
+  <meta name="theme-color" content="#fff5ec">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="PT Done">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -12,468 +12,109 @@
   <title>PT Done</title>
   <style>
     :root {
-      --bg: #f7fbf8;
-      --ink: #18221d;
-      --muted: #69766f;
-      --line: #dce7df;
+      --bg: #fff5ec;
+      --ink: #2a1708;
+      --muted: #7d5f45;
+      --line: #f1c79d;
       --panel: #ffffff;
-      --panel-soft: #edf5ef;
+      --panel-soft: #fff0dd;
       --green: #1f9d62;
       --green-dark: #117044;
       --green-soft: #dff5e8;
-      --blue: #2563eb;
-      --blue-soft: #e4edff;
-      --gray: #e8eee9;
+      --blue: #1667b7;
+      --blue-soft: #e3f0ff;
+      --orange: #f47b20;
+      --orange-dark: #9a4308;
       --danger: #b42318;
-      --shadow: 0 16px 34px rgba(28, 58, 39, 0.1);
+      --shadow: 0 6px 14px rgba(118, 61, 11, 0.08);
       font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
     }
-
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      background: var(--bg);
-      color: var(--ink);
-      min-height: 100vh;
-      padding: env(safe-area-inset-top) 0 calc(24px + env(safe-area-inset-bottom));
-    }
-
-    button, input, select, textarea {
-      font: inherit;
-    }
-
-    button {
-      border: 0;
-      cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    .app {
-      width: min(100%, 720px);
-      margin: 0 auto;
-      padding: 18px 14px 28px;
-    }
-
-    .top {
-      position: sticky;
-      top: 0;
-      z-index: 5;
-      background: rgba(247, 251, 248, 0.92);
-      backdrop-filter: blur(14px);
-      margin: -18px -14px 14px;
-      padding: 16px 14px 12px;
-      border-bottom: 1px solid rgba(220, 231, 223, 0.85);
-    }
-
-    .title-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 12px;
-    }
-
-    h1 {
-      margin: 0;
-      font-size: clamp(28px, 8vw, 44px);
-      letter-spacing: -0.02em;
-      line-height: 0.95;
-    }
-
-    .date-copy {
-      margin: 4px 0 0;
-      color: var(--muted);
-      font-size: 15px;
-      font-weight: 650;
-    }
-
-    .icon-button {
-      width: 52px;
-      height: 52px;
-      border-radius: 16px;
-      background: var(--panel);
-      color: var(--ink);
-      box-shadow: var(--shadow);
-      font-size: 24px;
-      font-weight: 800;
-    }
-
-    .progress-wrap {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 10px;
-      align-items: center;
-    }
-
-    .progress-track {
-      height: 14px;
-      background: #dfe9e2;
-      border-radius: 999px;
-      overflow: hidden;
-    }
-
-    .progress-fill {
-      height: 100%;
-      width: 0%;
-      background: linear-gradient(90deg, #31b86f, #117044);
-      border-radius: inherit;
-      transition: width 220ms ease;
-    }
-
-    .progress-label {
-      color: var(--green-dark);
-      font-size: 15px;
-      font-weight: 800;
-      min-width: 52px;
-      text-align: right;
-    }
-
-    .day-switch {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin: 14px 0;
-    }
-
-    .day-btn {
-      min-height: 58px;
-      border-radius: 18px;
-      background: var(--panel);
-      color: var(--muted);
-      box-shadow: inset 0 0 0 1px var(--line);
-      font-weight: 850;
-      font-size: 17px;
-    }
-
-    .day-btn.active {
-      background: var(--ink);
-      color: white;
-      box-shadow: none;
-    }
-
-    .actions {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin: 10px 0 16px;
-    }
-
-    .small-btn {
-      min-height: 48px;
-      border-radius: 16px;
-      background: var(--panel);
-      color: var(--ink);
-      box-shadow: inset 0 0 0 1px var(--line);
-      font-weight: 800;
-    }
-
-    .small-btn.green {
-      background: var(--green-soft);
-      color: var(--green-dark);
-      box-shadow: none;
-    }
-
-    .section {
-      margin: 20px 0 26px;
-    }
-
-    .section-head {
-      display: flex;
-      align-items: end;
-      justify-content: space-between;
-      gap: 10px;
-      margin: 0 2px 10px;
-    }
-
-    h2 {
-      margin: 0;
-      font-size: 22px;
-      letter-spacing: -0.01em;
-    }
-
-    .section-count {
-      color: var(--muted);
-      font-size: 14px;
-      font-weight: 800;
-      white-space: nowrap;
-    }
-
-    .exercise {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      box-shadow: var(--shadow);
-      padding: 14px;
-      margin-bottom: 12px;
-      transition: background 180ms ease, border-color 180ms ease, opacity 180ms ease;
-    }
-
-    .exercise.done {
-      background: var(--green-soft);
-      border-color: #9addb7;
-    }
-
-    .exercise.done .exercise-name,
-    .exercise.done .detail {
-      color: var(--green-dark);
-    }
-
-    .exercise-name {
-      margin: 0 0 5px;
-      font-size: 20px;
-      font-weight: 900;
-      line-height: 1.12;
-    }
-
-    .detail {
-      margin: 0;
-      color: var(--muted);
-      font-size: 16px;
-      font-weight: 700;
-      line-height: 1.35;
-    }
-
-    .card-actions {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 10px;
-      margin-top: 12px;
-    }
-
-    .main-tap {
-      min-height: 76px;
-      border-radius: 20px;
-      background: var(--ink);
-      color: white;
-      font-size: 22px;
-      font-weight: 900;
-      letter-spacing: -0.01em;
-    }
-
-    .main-tap.done {
-      background: var(--green);
-    }
-
-    .timer-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-
-    .timer-btn {
-      min-height: 64px;
-      border-radius: 18px;
-      background: var(--blue-soft);
-      color: #143f9d;
-      font-size: 19px;
-      font-weight: 900;
-    }
-
-    .timer-btn.running {
-      background: var(--blue);
-      color: white;
-    }
-
-    .delete-btn {
-      min-height: 44px;
-      border-radius: 14px;
-      background: #fff1f0;
-      color: var(--danger);
-      font-weight: 800;
-      display: none;
-      margin-top: 10px;
-    }
-
-    .editing .delete-btn {
-      display: block;
-    }
-
-    .meta-chips {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 7px;
-      margin: 8px 0 0;
-    }
-
-    .chip {
-      background: var(--panel-soft);
-      color: var(--green-dark);
-      border-radius: 999px;
-      padding: 6px 10px;
-      font-size: 13px;
-      font-weight: 900;
-    }
-
-    .exercise-edit {
-      display: none;
-      border-top: 1px solid var(--line);
-      margin-top: 12px;
-      padding-top: 12px;
-    }
-
-    .editing .exercise-edit {
-      display: grid;
-      gap: 10px;
-    }
-
-    .edit-actions {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-
-    .secondary-btn {
-      min-height: 44px;
-      border-radius: 14px;
-      background: var(--panel-soft);
-      color: var(--ink);
-      font-weight: 850;
-    }
-
-    .edit-panel {
-      display: none;
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 20px;
-      box-shadow: var(--shadow);
-      padding: 14px;
-      margin: 12px 0 20px;
-    }
-
-    .editing .edit-panel {
-      display: block;
-    }
-
-    .field-grid {
-      display: grid;
-      gap: 10px;
-    }
-
-    .field-grid.two {
-      grid-template-columns: 1fr 1fr;
-    }
-
-    label {
-      display: grid;
-      gap: 6px;
-      color: var(--muted);
-      font-size: 13px;
-      font-weight: 850;
-    }
-
-    input, select, textarea {
-      width: 100%;
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      background: #fbfdfb;
-      color: var(--ink);
-      padding: 13px;
-      font-size: 16px;
-      outline: none;
-    }
-
-    textarea {
-      min-height: 76px;
-      resize: vertical;
-    }
-
-    .empty {
-      background: var(--panel-soft);
-      border: 1px dashed #b9cabc;
-      color: var(--muted);
-      border-radius: 18px;
-      padding: 16px;
-      font-weight: 750;
-    }
-
-    .celebration {
-      position: fixed;
-      inset: 0;
-      z-index: 20;
-      display: none;
-      place-items: center;
-      background: rgba(247, 251, 248, 0.94);
-      padding: 20px;
-      text-align: center;
-    }
-
-    .celebration.show {
-      display: grid;
-    }
-
-    .celebration-card {
-      background: var(--green);
-      color: white;
-      width: min(100%, 460px);
-      border-radius: 28px;
-      padding: 34px 22px;
-      box-shadow: 0 20px 60px rgba(17, 112, 68, 0.28);
-    }
-
-    .celebration-card h3 {
-      margin: 0 0 8px;
-      font-size: clamp(42px, 14vw, 72px);
-      line-height: 0.9;
-      letter-spacing: -0.04em;
-    }
-
-    .celebration-card p {
-      margin: 0 0 18px;
-      font-size: 18px;
-      font-weight: 750;
-    }
-
-    .celebration-card button {
-      min-height: 58px;
-      padding: 0 22px;
-      border-radius: 18px;
-      background: white;
-      color: var(--green-dark);
-      font-size: 18px;
-      font-weight: 900;
-    }
-
-    @media (min-width: 680px) {
-      .exercise-list {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 12px;
-      }
-
-      .exercise {
-        margin-bottom: 0;
-      }
-    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--ink); min-height: 100vh; padding: env(safe-area-inset-top) 0 calc(14px + env(safe-area-inset-bottom)); user-select: none; -webkit-user-select: none; }
+    button, input, select, textarea { font: inherit; }
+    button { border: 0; cursor: pointer; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+    .app { width: min(100%, 720px); margin: 0 auto; padding: 8px 8px 20px; }
+    .top { position: sticky; top: 0; z-index: 5; background: rgba(255, 245, 236, 0.94); backdrop-filter: blur(14px); margin: -8px -8px 6px; padding: 5px 8px 6px; border-bottom: 1px solid rgba(241, 199, 157, 0.8); }
+    .title-row { display: flex; align-items: center; justify-content: flex-end; gap: 4px; margin-bottom: 4px; }
+    .icon-button { width: 38px; height: 28px; border-radius: 999px; background: var(--orange); color: white; box-shadow: none; font-size: 16px; font-weight: 900; }
+    .progress-wrap { display: grid; grid-template-columns: 1fr auto; gap: 5px; align-items: center; }
+    .progress-track { height: 4px; background: #f3d5b8; border-radius: 999px; overflow: hidden; }
+    .progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #35bf76, #117044); border-radius: inherit; transition: width 220ms ease; }
+    .progress-label { color: var(--green-dark); font-size: 11px; font-weight: 900; min-width: 38px; text-align: right; }
+    .top-chips { display: flex; gap: 4px; overflow-x: auto; margin-top: 5px; scrollbar-width: none; }
+    .top-chips::-webkit-scrollbar { display: none; }
+    .day-switch, .actions { display: flex; gap: 4px; flex: 0 0 auto; }
+    .day-btn, .small-btn { min-height: 28px; border-radius: 999px; padding: 0 10px; background: var(--panel); color: var(--muted); box-shadow: inset 0 0 0 1px var(--line); font-weight: 900; font-size: 12px; white-space: nowrap; }
+    .day-btn.active { background: var(--orange); color: white; box-shadow: none; }
+    .small-btn.green { background: var(--green-soft); color: var(--green-dark); box-shadow: none; }
+    .section { margin: 10px 0 14px; }
+    .section-head { display: flex; align-items: end; justify-content: space-between; gap: 8px; margin: 0 2px 5px; }
+    h2 { margin: 0; font-size: 15px; letter-spacing: -0.01em; }
+    .section-count { color: var(--muted); font-size: 11px; font-weight: 900; white-space: nowrap; }
+    .exercise { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; box-shadow: var(--shadow); padding: 6px; margin-bottom: 6px; transition: background 180ms ease, border-color 180ms ease, opacity 180ms ease; }
+    .exercise.done { background: var(--green-soft); border-color: #9addb7; }
+    .exercise.done .exercise-name, .exercise.done .detail, .exercise.done .set-copy { color: var(--green-dark); }
+    .exercise-row { display: grid; grid-template-columns: minmax(0, 1fr) 92px; gap: 6px; align-items: stretch; }
+    .exercise-copy { min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: 2px; }
+    .exercise-name { margin: 0; font-size: 14px; font-weight: 900; line-height: 1.05; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .detail { margin: 0; color: var(--muted); font-size: 12px; font-weight: 750; line-height: 1.15; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+    .set-copy { color: var(--orange-dark); font-size: 11px; font-weight: 900; white-space: nowrap; }
+    .card-actions { display: grid; grid-template-columns: 1fr; gap: 4px; margin-top: 0; }
+    .main-tap { min-height: 42px; border-radius: 11px; background: var(--orange); color: white; font-size: 15px; font-weight: 950; letter-spacing: -0.01em; }
+    .main-tap.done { background: var(--green); }
+    .main-tap.resetting { background: var(--danger); }
+    .timer-row { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+    .timer-btn { min-height: 32px; border-radius: 10px; background: var(--blue-soft); color: var(--blue); font-size: 12px; font-weight: 950; }
+    .timer-btn.running { background: var(--blue); color: white; }
+    .delete-btn { min-height: 34px; border-radius: 12px; background: #fff1f0; color: var(--danger); font-weight: 900; display: none; margin-top: 0; }
+    .editing .delete-btn { display: block; }
+    .meta-chips { display: none; }
+    .chip { background: var(--panel-soft); color: var(--orange-dark); border-radius: 999px; padding: 3px 7px; font-size: 10px; font-weight: 900; }
+    .exercise-edit { display: none; border-top: 1px solid var(--line); margin-top: 8px; padding-top: 8px; }
+    .editing .exercise-edit { display: grid; gap: 7px; }
+    .editing .exercise-row { grid-template-columns: 1fr; }
+    .editing .exercise-name, .editing .detail { white-space: normal; display: block; overflow: visible; }
+    .edit-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+    .secondary-btn { min-height: 34px; border-radius: 12px; background: var(--panel-soft); color: var(--ink); font-weight: 900; }
+    .edit-panel { display: none; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); padding: 9px; margin: 8px 0 12px; }
+    .editing .edit-panel { display: block; }
+    .field-grid { display: grid; gap: 7px; }
+    .field-grid.two { grid-template-columns: 1fr 1fr; }
+    label { display: grid; gap: 5px; color: var(--muted); font-size: 12px; font-weight: 900; }
+    input, select, textarea { width: 100%; border: 1px solid var(--line); border-radius: 12px; background: #fffaf5; color: var(--ink); padding: 9px; font-size: 15px; outline: none; }
+    textarea { min-height: 58px; resize: vertical; user-select: text; -webkit-user-select: text; }
+    input { user-select: text; -webkit-user-select: text; }
+    .empty { background: var(--panel-soft); border: 1px dashed #dca56e; color: var(--muted); border-radius: 12px; padding: 12px; font-weight: 800; }
+    .celebration { position: fixed; inset: 0; z-index: 20; display: none; place-items: center; background: rgba(255, 245, 236, 0.94); padding: 20px; text-align: center; }
+    .celebration.show { display: grid; }
+    .celebration-card { background: var(--green); color: white; width: min(100%, 460px); border-radius: 28px; padding: 34px 22px; box-shadow: 0 20px 60px rgba(17, 112, 68, 0.28); }
+    .celebration-card h3 { margin: 0 0 8px; font-size: clamp(42px, 14vw, 72px); line-height: 0.9; letter-spacing: -0.04em; }
+    .celebration-card p { margin: 0 0 18px; font-size: 18px; font-weight: 750; }
+    .celebration-card button { min-height: 58px; padding: 0 22px; border-radius: 18px; background: white; color: var(--green-dark); font-size: 18px; font-weight: 900; }
+    @media (min-width: 680px) { .exercise-list { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; } .exercise { margin-bottom: 0; } }
   </style>
 </head>
 <body>
   <main class="app" id="app">
     <header class="top">
       <div class="title-row">
-        <div>
-          <h1>PT Done</h1>
-          <p class="date-copy" id="dateCopy"></p>
-        </div>
         <button class="icon-button" id="editToggle" type="button" aria-label="Edit exercises">+</button>
       </div>
       <div class="progress-wrap" aria-label="Today's progress">
         <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
         <div class="progress-label" id="progressLabel">0/0</div>
       </div>
+      <div class="top-chips">
+        <div class="day-switch" role="group" aria-label="Choose today's alternating routine">
+          <button class="day-btn" type="button" data-day="lower">Lower + Balance</button>
+          <button class="day-btn" type="button" data-day="upper">Upper + Core</button>
+        </div>
+        <div class="actions">
+          <button class="small-btn" type="button" id="resetToday">Reset</button>
+          <button class="small-btn green" type="button" id="showAll">All Clear</button>
+        </div>
+      </div>
     </header>
-
-    <div class="day-switch" role="group" aria-label="Choose today's alternating routine">
-      <button class="day-btn" type="button" data-day="lower">Lower + Balance</button>
-      <button class="day-btn" type="button" data-day="upper">Upper + Core</button>
-    </div>
-
-    <div class="actions">
-      <button class="small-btn" type="button" id="resetToday">Reset Today</button>
-      <button class="small-btn green" type="button" id="showAll">All Clear</button>
-    </div>
 
     <section class="edit-panel" aria-label="Add exercise">
       <div class="field-grid">
@@ -528,6 +169,7 @@
     const STORE = "pt-done-v1";
     const PROGRESS_STORE = "pt-done-progress-v1";
     const DAY_STORE = "pt-done-day-v1";
+    const SESSION_STORE = "pt-done-session-v1";
 
     const sections = [
       { id: "vor", title: "Vestibulo-Ocular Reflex", cadence: "daily" },
@@ -557,9 +199,12 @@
       { id: "core-pallof", section: "core", name: "Pallof Press", reps: 10, weight: "light band", details: "2s", sets: 2 },
       { id: "core-bird-dog", section: "core", name: "Bird Dog", reps: 10, details: "Hold 3s", sets: 2 },
 
-      { id: "balance-left-right", section: "balance", name: "Single Leg Stand, Eyes Left and Right", details: "Right then left foot, 30s each", sets: 2, timer: 30 },
-      { id: "balance-up-down", section: "balance", name: "Single Leg Stand, Eyes Up and Down", details: "Right then left foot, 30s each", sets: 2, timer: 30 },
-      { id: "balance-closed", section: "balance", name: "Single Leg Stand, Eyes Closed", details: "Right then left foot, 1 min each", sets: 2, timer: 60 },
+      { id: "balance-left-left-right", section: "balance", name: "Left Leg Stand Eyes Left and Right", sets: 1, timer: 30 },
+      { id: "balance-left-up-down", section: "balance", name: "Left Leg Stand Eyes Up and Down", sets: 1, timer: 30 },
+      { id: "balance-left-closed", section: "balance", name: "Left Leg Stand Eyes Closed", sets: 1, timer: 60 },
+      { id: "balance-right-left-right", section: "balance", name: "Right Leg Stand Eyes Left and Right", sets: 1, timer: 30 },
+      { id: "balance-right-up-down", section: "balance", name: "Right Leg Stand Eyes Up and Down", sets: 1, timer: 30 },
+      { id: "balance-right-closed", section: "balance", name: "Right Leg Stand Eyes Closed", sets: 1, timer: 60 },
 
       { id: "upper-face-pull", section: "upper", name: "Face Pull", reps: 15, weight: "medium band", details: "Thumbs back", sets: 2 },
       { id: "upper-row", section: "upper", name: "Bent-Over Row", reps: 10, weight: "15lbs", sets: 2 },
@@ -579,11 +224,28 @@
     const sectionsNode = document.getElementById("sections");
     const progressFill = document.getElementById("progressFill");
     const progressLabel = document.getElementById("progressLabel");
-    const dateCopy = document.getElementById("dateCopy");
     const celebration = document.getElementById("celebration");
 
+    function pacificDateParts(date = new Date()) {
+      const parts = new Intl.DateTimeFormat("en-CA", {
+        timeZone: "America/Los_Angeles",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit"
+      }).formatToParts(date).reduce((acc, part) => {
+        acc[part.type] = part.value;
+        return acc;
+      }, {});
+      return { year: parts.year, month: parts.month, day: parts.day };
+    }
+
     function todayKey() {
-      return new Date().toISOString().slice(0, 10);
+      const parts = pacificDateParts();
+      return parts.year + "-" + parts.month + "-" + parts.day;
+    }
+
+    function oppositeDay(day) {
+      return day === "lower" ? "upper" : "lower";
     }
 
     function loadJson(key, fallback) {
@@ -616,15 +278,21 @@
 
     function loadExercises() {
       const saved = loadJson(STORE, null);
-      return (Array.isArray(saved) && saved.length ? saved : defaultExercises).map(normalizeExercise);
+      const list = Array.isArray(saved) && saved.length ? saved : defaultExercises;
+      const hasOldBalance = list.some((item) => ["balance-left-right", "balance-up-down", "balance-closed"].includes(item.id));
+      const normalized = hasOldBalance
+        ? [...list.filter((item) => item.section !== "balance"), ...defaultExercises.filter((item) => item.section === "balance")]
+        : list;
+      return normalized.map(normalizeExercise);
     }
 
     function loadDayChoice() {
       const saved = loadJson(DAY_STORE, {});
       const key = todayKey();
       if (saved[key]) return saved[key];
-      const dayNumber = Math.floor(new Date(key + "T00:00:00").getTime() / 86400000);
-      return dayNumber % 2 === 0 ? "lower" : "upper";
+      const session = loadJson(SESSION_STORE, null);
+      if (session?.day && session?.date !== key) return oppositeDay(session.day);
+      return "lower";
     }
 
     function saveDayChoice(choice) {
@@ -728,17 +396,29 @@
       maybeCelebrate();
     }
 
-    function undoSet(exercise) {
+    function resetExercise(exercise) {
       const today = todaysProgress();
-      today[exercise.id] = Math.max(0, (today[exercise.id] || 0) - 1);
+      today[exercise.id] = 0;
+      if (timer?.id === exercise.id) resetTimer(exercise.id);
       saveJson(PROGRESS_STORE, progress);
       render();
+    }
+
+    function undoSet(exercise) {
+      resetExercise(exercise);
+    }
+
+    function saveCompletedSession() {
+      saveJson(SESSION_STORE, { date: todayKey(), day: dayChoice });
     }
 
     function maybeCelebrate(force = false) {
       const list = activeExercises();
       const allDone = list.length > 0 && list.every(isDone);
-      if (force || allDone) celebration.classList.add("show");
+      if (force || allDone) {
+        if (allDone) saveCompletedSession();
+        celebration.classList.add("show");
+      }
     }
 
     function renderProgress() {
@@ -846,15 +526,18 @@
 
       return `
         <article class="exercise ${done ? "done" : ""}" data-id="${exercise.id}">
-          <h3 class="exercise-name">${escapeHtml(exercise.name)}</h3>
-          <p class="detail">${escapeHtml(displayDetails(exercise))}</p>
-          ${chips.length ? `<div class="meta-chips">${chips.map((chip) => `<span class="chip">${escapeHtml(chip)}</span>`).join("")}</div>` : ""}
-          <p class="detail">${done ? "All sets done" : remaining + " set" + (remaining === 1 ? "" : "s") + " left"}</p>
-          <div class="card-actions">
-            ${timerButton}
-            <button class="main-tap ${done ? "done" : ""}" type="button" data-action="${done ? "undo" : "complete"}" data-id="${exercise.id}">
-              ${done ? "Tap to Undo" : mainLabel}
-            </button>
+          <div class="exercise-row">
+            <div class="exercise-copy">
+              <h3 class="exercise-name">${escapeHtml(exercise.name)}</h3>
+              <p class="detail">${escapeHtml(displayDetails(exercise))}</p>
+              <div class="set-copy">${done ? "All sets done" : remaining + " set" + (remaining === 1 ? "" : "s") + " left"}</div>
+            </div>
+            <div class="card-actions">
+              ${timerButton}
+              <button class="main-tap ${done ? "done" : ""}" type="button" data-action="complete" data-id="${exercise.id}">
+                ${done ? "Done" : mainLabel.replace("Done ", "")}
+              </button>
+            </div>
           </div>
           ${renderEditFields(exercise)}
         </article>
@@ -884,11 +567,6 @@
     }
 
     function render() {
-      dateCopy.textContent = new Intl.DateTimeFormat(undefined, {
-        weekday: "long",
-        month: "short",
-        day: "numeric"
-      }).format(new Date());
       app.classList.toggle("editing", editMode);
       document.getElementById("editToggle").textContent = editMode ? "OK" : "+";
       renderDayButtons();
@@ -948,6 +626,32 @@
       render();
     });
 
+    let longPressTimer = null;
+    let longPressTriggered = false;
+
+    sectionsNode.addEventListener("pointerdown", (event) => {
+      const button = event.target.closest("button[data-action='complete']");
+      if (!button) return;
+      const exercise = exercises.find((item) => item.id === button.dataset.id);
+      if (!exercise) return;
+      longPressTriggered = false;
+      longPressTimer = setTimeout(() => {
+        longPressTriggered = true;
+        button.classList.add("resetting");
+        resetExercise(exercise);
+        if (navigator.vibrate) navigator.vibrate(80);
+      }, 650);
+    });
+
+    ["pointerup", "pointercancel", "pointerleave"].forEach((type) => {
+      sectionsNode.addEventListener(type, (event) => {
+        if (longPressTimer) clearTimeout(longPressTimer);
+        longPressTimer = null;
+        const button = event.target.closest?.("button[data-action='complete']");
+        if (button) button.classList.remove("resetting");
+      });
+    });
+
     sectionsNode.addEventListener("click", (event) => {
       const button = event.target.closest("button[data-action]");
       if (!button) return;
@@ -955,7 +659,13 @@
       if (!exercise) return;
       const action = button.dataset.action;
 
-      if (action === "complete") completeSet(exercise);
+      if (action === "complete") {
+        if (longPressTriggered) {
+          longPressTriggered = false;
+          return;
+        }
+        completeSet(exercise);
+      }
       if (action === "undo") undoSet(exercise);
       if (action === "start-timer") startTimer(exercise);
       if (action === "pause-timer") pauseTimer();
