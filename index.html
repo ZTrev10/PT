@@ -1,0 +1,1011 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f7fbf8">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="PT Done">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="apple-touch-icon" href="./icon.svg">
+  <title>PT Done</title>
+  <style>
+    :root {
+      --bg: #f7fbf8;
+      --ink: #18221d;
+      --muted: #69766f;
+      --line: #dce7df;
+      --panel: #ffffff;
+      --panel-soft: #edf5ef;
+      --green: #1f9d62;
+      --green-dark: #117044;
+      --green-soft: #dff5e8;
+      --blue: #2563eb;
+      --blue-soft: #e4edff;
+      --gray: #e8eee9;
+      --danger: #b42318;
+      --shadow: 0 16px 34px rgba(28, 58, 39, 0.1);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      min-height: 100vh;
+      padding: env(safe-area-inset-top) 0 calc(24px + env(safe-area-inset-bottom));
+    }
+
+    button, input, select, textarea {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .app {
+      width: min(100%, 720px);
+      margin: 0 auto;
+      padding: 18px 14px 28px;
+    }
+
+    .top {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      background: rgba(247, 251, 248, 0.92);
+      backdrop-filter: blur(14px);
+      margin: -18px -14px 14px;
+      padding: 16px 14px 12px;
+      border-bottom: 1px solid rgba(220, 231, 223, 0.85);
+    }
+
+    .title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(28px, 8vw, 44px);
+      letter-spacing: -0.02em;
+      line-height: 0.95;
+    }
+
+    .date-copy {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 15px;
+      font-weight: 650;
+    }
+
+    .icon-button {
+      width: 52px;
+      height: 52px;
+      border-radius: 16px;
+      background: var(--panel);
+      color: var(--ink);
+      box-shadow: var(--shadow);
+      font-size: 24px;
+      font-weight: 800;
+    }
+
+    .progress-wrap {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .progress-track {
+      height: 14px;
+      background: #dfe9e2;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #31b86f, #117044);
+      border-radius: inherit;
+      transition: width 220ms ease;
+    }
+
+    .progress-label {
+      color: var(--green-dark);
+      font-size: 15px;
+      font-weight: 800;
+      min-width: 52px;
+      text-align: right;
+    }
+
+    .day-switch {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin: 14px 0;
+    }
+
+    .day-btn {
+      min-height: 58px;
+      border-radius: 18px;
+      background: var(--panel);
+      color: var(--muted);
+      box-shadow: inset 0 0 0 1px var(--line);
+      font-weight: 850;
+      font-size: 17px;
+    }
+
+    .day-btn.active {
+      background: var(--ink);
+      color: white;
+      box-shadow: none;
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin: 10px 0 16px;
+    }
+
+    .small-btn {
+      min-height: 48px;
+      border-radius: 16px;
+      background: var(--panel);
+      color: var(--ink);
+      box-shadow: inset 0 0 0 1px var(--line);
+      font-weight: 800;
+    }
+
+    .small-btn.green {
+      background: var(--green-soft);
+      color: var(--green-dark);
+      box-shadow: none;
+    }
+
+    .section {
+      margin: 20px 0 26px;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 10px;
+      margin: 0 2px 10px;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 22px;
+      letter-spacing: -0.01em;
+    }
+
+    .section-count {
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .exercise {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      padding: 14px;
+      margin-bottom: 12px;
+      transition: background 180ms ease, border-color 180ms ease, opacity 180ms ease;
+    }
+
+    .exercise.done {
+      background: var(--green-soft);
+      border-color: #9addb7;
+    }
+
+    .exercise.done .exercise-name,
+    .exercise.done .detail {
+      color: var(--green-dark);
+    }
+
+    .exercise-name {
+      margin: 0 0 5px;
+      font-size: 20px;
+      font-weight: 900;
+      line-height: 1.12;
+    }
+
+    .detail {
+      margin: 0;
+      color: var(--muted);
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 1.35;
+    }
+
+    .card-actions {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .main-tap {
+      min-height: 76px;
+      border-radius: 20px;
+      background: var(--ink);
+      color: white;
+      font-size: 22px;
+      font-weight: 900;
+      letter-spacing: -0.01em;
+    }
+
+    .main-tap.done {
+      background: var(--green);
+    }
+
+    .timer-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .timer-btn {
+      min-height: 64px;
+      border-radius: 18px;
+      background: var(--blue-soft);
+      color: #143f9d;
+      font-size: 19px;
+      font-weight: 900;
+    }
+
+    .timer-btn.running {
+      background: var(--blue);
+      color: white;
+    }
+
+    .delete-btn {
+      min-height: 44px;
+      border-radius: 14px;
+      background: #fff1f0;
+      color: var(--danger);
+      font-weight: 800;
+      display: none;
+      margin-top: 10px;
+    }
+
+    .editing .delete-btn {
+      display: block;
+    }
+
+    .meta-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin: 8px 0 0;
+    }
+
+    .chip {
+      background: var(--panel-soft);
+      color: var(--green-dark);
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 13px;
+      font-weight: 900;
+    }
+
+    .exercise-edit {
+      display: none;
+      border-top: 1px solid var(--line);
+      margin-top: 12px;
+      padding-top: 12px;
+    }
+
+    .editing .exercise-edit {
+      display: grid;
+      gap: 10px;
+    }
+
+    .edit-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .secondary-btn {
+      min-height: 44px;
+      border-radius: 14px;
+      background: var(--panel-soft);
+      color: var(--ink);
+      font-weight: 850;
+    }
+
+    .edit-panel {
+      display: none;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+      padding: 14px;
+      margin: 12px 0 20px;
+    }
+
+    .editing .edit-panel {
+      display: block;
+    }
+
+    .field-grid {
+      display: grid;
+      gap: 10px;
+    }
+
+    .field-grid.two {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 850;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fbfdfb;
+      color: var(--ink);
+      padding: 13px;
+      font-size: 16px;
+      outline: none;
+    }
+
+    textarea {
+      min-height: 76px;
+      resize: vertical;
+    }
+
+    .empty {
+      background: var(--panel-soft);
+      border: 1px dashed #b9cabc;
+      color: var(--muted);
+      border-radius: 18px;
+      padding: 16px;
+      font-weight: 750;
+    }
+
+    .celebration {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      display: none;
+      place-items: center;
+      background: rgba(247, 251, 248, 0.94);
+      padding: 20px;
+      text-align: center;
+    }
+
+    .celebration.show {
+      display: grid;
+    }
+
+    .celebration-card {
+      background: var(--green);
+      color: white;
+      width: min(100%, 460px);
+      border-radius: 28px;
+      padding: 34px 22px;
+      box-shadow: 0 20px 60px rgba(17, 112, 68, 0.28);
+    }
+
+    .celebration-card h3 {
+      margin: 0 0 8px;
+      font-size: clamp(42px, 14vw, 72px);
+      line-height: 0.9;
+      letter-spacing: -0.04em;
+    }
+
+    .celebration-card p {
+      margin: 0 0 18px;
+      font-size: 18px;
+      font-weight: 750;
+    }
+
+    .celebration-card button {
+      min-height: 58px;
+      padding: 0 22px;
+      border-radius: 18px;
+      background: white;
+      color: var(--green-dark);
+      font-size: 18px;
+      font-weight: 900;
+    }
+
+    @media (min-width: 680px) {
+      .exercise-list {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+
+      .exercise {
+        margin-bottom: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app" id="app">
+    <header class="top">
+      <div class="title-row">
+        <div>
+          <h1>PT Done</h1>
+          <p class="date-copy" id="dateCopy"></p>
+        </div>
+        <button class="icon-button" id="editToggle" type="button" aria-label="Edit exercises">+</button>
+      </div>
+      <div class="progress-wrap" aria-label="Today's progress">
+        <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+        <div class="progress-label" id="progressLabel">0/0</div>
+      </div>
+    </header>
+
+    <div class="day-switch" role="group" aria-label="Choose today's alternating routine">
+      <button class="day-btn" type="button" data-day="lower">Lower + Balance</button>
+      <button class="day-btn" type="button" data-day="upper">Upper + Core</button>
+    </div>
+
+    <div class="actions">
+      <button class="small-btn" type="button" id="resetToday">Reset Today</button>
+      <button class="small-btn green" type="button" id="showAll">All Clear</button>
+    </div>
+
+    <section class="edit-panel" aria-label="Add exercise">
+      <div class="field-grid">
+        <label>
+          Section
+          <select id="newSection"></select>
+        </label>
+        <label>
+          Exercise name
+          <input id="newName" type="text" placeholder="Example: Step-ups">
+        </label>
+        <div class="field-grid two">
+          <label>
+            Reps
+            <input id="newReps" type="number" min="0" max="999" value="10">
+          </label>
+          <label>
+            Weight / band
+            <input id="newWeight" type="text" placeholder="20lbs or black band">
+          </label>
+        </div>
+        <label>
+          Notes
+          <textarea id="newDetails" placeholder="Example: thumbs back, hold 3s, right then left"></textarea>
+        </label>
+        <div class="field-grid two">
+          <label>
+            Sets
+            <input id="newSets" type="number" min="1" max="9" value="2">
+          </label>
+          <label>
+            Timer seconds
+            <input id="newTimer" type="number" min="0" step="5" value="0">
+          </label>
+        </div>
+        <button class="main-tap" type="button" id="addExercise">Add Exercise</button>
+      </div>
+    </section>
+
+    <div id="sections"></div>
+  </main>
+
+  <div class="celebration" id="celebration" role="dialog" aria-modal="true" aria-labelledby="clearTitle">
+    <div class="celebration-card">
+      <h3 id="clearTitle">All Clear</h3>
+      <p>Today's PT is complete.</p>
+      <button type="button" id="closeCelebration">Back to list</button>
+    </div>
+  </div>
+
+  <script>
+    const STORE = "pt-done-v1";
+    const PROGRESS_STORE = "pt-done-progress-v1";
+    const DAY_STORE = "pt-done-day-v1";
+
+    const sections = [
+      { id: "vor", title: "Vestibulo-Ocular Reflex", cadence: "daily" },
+      { id: "lower", title: "Lower Body", cadence: "lower" },
+      { id: "balance", title: "Balance", cadence: "lower" },
+      { id: "upper", title: "Upper Body", cadence: "upper" },
+      { id: "core", title: "Core", cadence: "upper" }
+    ];
+
+    const defaultExercises = [
+      { id: "vor-thumb-head", section: "vor", name: "Thumb Up, Head Side-to-Side", reps: 10, sets: 3 },
+      { id: "vor-march-opposite", section: "vor", name: "March Head and Thumb, Opposite Movement", reps: 10, sets: 3 },
+      { id: "vor-walk-forward-t", section: "vor", name: "Walk Forward, Hold T, Follow with Head", reps: 10, sets: 3 },
+      { id: "vor-walk-back-t", section: "vor", name: "Walk Backward, Hold T, Head Side-to-Side", reps: 10, sets: 3 },
+      { id: "vor-ball-toss", section: "vor", name: "Walking Ball Toss", reps: 10, sets: 3 },
+      { id: "vor-heart-toss", section: "vor", name: "Heart Toss", details: "Timer: 2 min", sets: 1, timer: 120 },
+
+      { id: "lower-side-step", section: "lower", name: "Side Step", reps: 20, weight: "20lbs", sets: 2 },
+      { id: "lower-chair-sits", section: "lower", name: "Chair Sits", reps: 15, weight: "20lbs", sets: 2 },
+      { id: "lower-ankle-raises", section: "lower", name: "Ankle Raises", reps: 15, weight: "20lbs", sets: 2 },
+      { id: "lower-lunge", section: "lower", name: "Lunge", reps: 15, weight: "20lbs", sets: 2 },
+      { id: "lower-hip-right", section: "lower", name: "Standing Hip Abduction, Right Foot", reps: 10, weight: "black band", details: "12, 1:30, 4:30, 6", sets: 2 },
+      { id: "lower-hip-left", section: "lower", name: "Standing Hip Abduction, Left Foot", reps: 10, weight: "black band", details: "12, 10:30, 7:30, 6", sets: 2 },
+      { id: "lower-rdl", section: "lower", name: "RDL", reps: 15, weight: "25lbs", sets: 2 },
+
+      { id: "core-dead-bug", section: "core", name: "Dead Bug", reps: 10, details: "Hold 3s", sets: 2 },
+      { id: "core-pallof", section: "core", name: "Pallof Press", reps: 10, weight: "light band", details: "2s", sets: 2 },
+      { id: "core-bird-dog", section: "core", name: "Bird Dog", reps: 10, details: "Hold 3s", sets: 2 },
+
+      { id: "balance-left-right", section: "balance", name: "Single Leg Stand, Eyes Left and Right", details: "Right then left foot, 30s each", sets: 2, timer: 30 },
+      { id: "balance-up-down", section: "balance", name: "Single Leg Stand, Eyes Up and Down", details: "Right then left foot, 30s each", sets: 2, timer: 30 },
+      { id: "balance-closed", section: "balance", name: "Single Leg Stand, Eyes Closed", details: "Right then left foot, 1 min each", sets: 2, timer: 60 },
+
+      { id: "upper-face-pull", section: "upper", name: "Face Pull", reps: 15, weight: "medium band", details: "Thumbs back", sets: 2 },
+      { id: "upper-row", section: "upper", name: "Bent-Over Row", reps: 10, weight: "15lbs", sets: 2 },
+      { id: "upper-push-up", section: "upper", name: "Push-Up", reps: 15, sets: 2 },
+      { id: "upper-curl", section: "upper", name: "Curl", reps: 10, weight: "15lbs", sets: 2 },
+      { id: "upper-overhead", section: "upper", name: "Overhead Press", reps: 10, weight: "15lbs", sets: 2 },
+      { id: "upper-farmers", section: "upper", name: "Farmer's Carry", weight: "25lbs", details: "Timer: 1 min", sets: 2, timer: 60 }
+    ];
+
+    let exercises = loadExercises();
+    let progress = loadJson(PROGRESS_STORE, {});
+    let dayChoice = loadDayChoice();
+    let editMode = false;
+    let timer = null;
+
+    const app = document.getElementById("app");
+    const sectionsNode = document.getElementById("sections");
+    const progressFill = document.getElementById("progressFill");
+    const progressLabel = document.getElementById("progressLabel");
+    const dateCopy = document.getElementById("dateCopy");
+    const celebration = document.getElementById("celebration");
+
+    function todayKey() {
+      return new Date().toISOString().slice(0, 10);
+    }
+
+    function loadJson(key, fallback) {
+      try {
+        return JSON.parse(localStorage.getItem(key)) || fallback;
+      } catch {
+        return fallback;
+      }
+    }
+
+    function saveJson(key, value) {
+      localStorage.setItem(key, JSON.stringify(value));
+    }
+
+    function normalizeExercise(exercise) {
+      const next = { ...exercise };
+      const details = String(next.details || "");
+      if (!next.reps) {
+        const reps = details.match(/\bx\s*(\d+)/i);
+        if (reps) next.reps = Number(reps[1]);
+      }
+      if (!next.weight) {
+        const weight = details.match(/\bw\/\s*([^,·]+)/i);
+        if (weight) next.weight = weight[1].trim();
+      }
+      next.sets = Math.max(1, Number(next.sets) || 1);
+      if (next.timer) next.timer = Math.max(0, Number(next.timer) || 0);
+      return next;
+    }
+
+    function loadExercises() {
+      const saved = loadJson(STORE, null);
+      return (Array.isArray(saved) && saved.length ? saved : defaultExercises).map(normalizeExercise);
+    }
+
+    function loadDayChoice() {
+      const saved = loadJson(DAY_STORE, {});
+      const key = todayKey();
+      if (saved[key]) return saved[key];
+      const dayNumber = Math.floor(new Date(key + "T00:00:00").getTime() / 86400000);
+      return dayNumber % 2 === 0 ? "lower" : "upper";
+    }
+
+    function saveDayChoice(choice) {
+      const saved = loadJson(DAY_STORE, {});
+      saved[todayKey()] = choice;
+      saveJson(DAY_STORE, saved);
+    }
+
+    function todaysProgress() {
+      const key = todayKey();
+      if (!progress[key]) progress[key] = {};
+      return progress[key];
+    }
+
+    function activeSections() {
+      return sections.filter((section) => section.cadence === "daily" || section.cadence === dayChoice);
+    }
+
+    function activeExercises() {
+      const active = new Set(activeSections().map((section) => section.id));
+      return exercises.filter((exercise) => active.has(exercise.section));
+    }
+
+    function remainingSets(exercise) {
+      const done = todaysProgress()[exercise.id] || 0;
+      return Math.max(0, (exercise.sets || 1) - done);
+    }
+
+    function isDone(exercise) {
+      return remainingSets(exercise) === 0;
+    }
+
+    function formatTime(seconds) {
+      const mins = Math.floor(seconds / 60);
+      const secs = seconds % 60;
+      return mins + ":" + String(secs).padStart(2, "0");
+    }
+
+    function timerState(id) {
+      if (!timer || timer.id !== id) return null;
+      return timer;
+    }
+
+    function startTimer(exercise) {
+      if (timer?.interval) clearInterval(timer.interval);
+      timer = {
+        id: exercise.id,
+        remaining: exercise.timer,
+        interval: null,
+        running: true
+      };
+      timer.interval = setInterval(() => {
+        timer.remaining -= 1;
+        if (timer.remaining <= 0) {
+          clearInterval(timer.interval);
+          timer.remaining = 0;
+          timer.running = false;
+          if (navigator.vibrate) navigator.vibrate([150, 80, 150]);
+        }
+        render();
+      }, 1000);
+      render();
+    }
+
+    function pauseTimer() {
+      if (!timer) return;
+      clearInterval(timer.interval);
+      timer.running = false;
+      render();
+    }
+
+    function resumeTimer() {
+      if (!timer) return;
+      timer.running = true;
+      timer.interval = setInterval(() => {
+        timer.remaining -= 1;
+        if (timer.remaining <= 0) {
+          clearInterval(timer.interval);
+          timer.remaining = 0;
+          timer.running = false;
+          if (navigator.vibrate) navigator.vibrate([150, 80, 150]);
+        }
+        render();
+      }, 1000);
+      render();
+    }
+
+    function resetTimer(id) {
+      if (timer?.id === id && timer.interval) clearInterval(timer.interval);
+      if (timer?.id === id) timer = null;
+      render();
+    }
+
+    function completeSet(exercise) {
+      const today = todaysProgress();
+      const current = today[exercise.id] || 0;
+      today[exercise.id] = Math.min(exercise.sets || 1, current + 1);
+      if (timer?.id === exercise.id) resetTimer(exercise.id);
+      saveJson(PROGRESS_STORE, progress);
+      render();
+      maybeCelebrate();
+    }
+
+    function undoSet(exercise) {
+      const today = todaysProgress();
+      today[exercise.id] = Math.max(0, (today[exercise.id] || 0) - 1);
+      saveJson(PROGRESS_STORE, progress);
+      render();
+    }
+
+    function maybeCelebrate(force = false) {
+      const list = activeExercises();
+      const allDone = list.length > 0 && list.every(isDone);
+      if (force || allDone) celebration.classList.add("show");
+    }
+
+    function renderProgress() {
+      const list = activeExercises();
+      const total = list.reduce((sum, exercise) => sum + (exercise.sets || 1), 0);
+      const done = list.reduce((sum, exercise) => sum + Math.min(todaysProgress()[exercise.id] || 0, exercise.sets || 1), 0);
+      const pct = total ? Math.round((done / total) * 100) : 0;
+      progressFill.style.width = pct + "%";
+      progressLabel.textContent = done + "/" + total;
+    }
+
+    function renderDayButtons() {
+      document.querySelectorAll(".day-btn").forEach((button) => {
+        button.classList.toggle("active", button.dataset.day === dayChoice);
+      });
+    }
+
+    function renderSectionSelect() {
+      const select = document.getElementById("newSection");
+      select.innerHTML = sections.map((section) => `<option value="${section.id}">${section.title}</option>`).join("");
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function displayDetails(exercise) {
+      const parts = [];
+      if (exercise.reps) parts.push("x " + exercise.reps);
+      if (exercise.weight) parts.push("w/ " + exercise.weight);
+      if (exercise.details) parts.push(exercise.details);
+      if (exercise.timer && !parts.some((part) => part.toLowerCase().includes("timer"))) {
+        parts.push("Timer: " + formatTime(exercise.timer));
+      }
+      return parts.join(" · ");
+    }
+
+    function renderEditFields(exercise) {
+      return `
+        <div class="exercise-edit">
+          <label>
+            Exercise name
+            <input data-action="edit-field" data-field="name" data-id="${exercise.id}" type="text" value="${escapeHtml(exercise.name)}">
+          </label>
+          <label>
+            Section
+            <select data-action="edit-field" data-field="section" data-id="${exercise.id}">
+              ${sections.map((section) => `<option value="${section.id}" ${section.id === exercise.section ? "selected" : ""}>${section.title}</option>`).join("")}
+            </select>
+          </label>
+          <div class="field-grid two">
+            <label>
+              Reps
+              <input data-action="edit-field" data-field="reps" data-kind="number" data-id="${exercise.id}" type="number" min="0" max="999" value="${exercise.reps || ""}">
+            </label>
+            <label>
+              Weight / band
+              <input data-action="edit-field" data-field="weight" data-id="${exercise.id}" type="text" value="${escapeHtml(exercise.weight || "")}" placeholder="20lbs or black band">
+            </label>
+          </div>
+          <div class="field-grid two">
+            <label>
+              Sets
+              <input data-action="edit-field" data-field="sets" data-kind="number" data-id="${exercise.id}" type="number" min="1" max="9" value="${exercise.sets || 1}">
+            </label>
+            <label>
+              Timer seconds
+              <input data-action="edit-field" data-field="timer" data-kind="number" data-id="${exercise.id}" type="number" min="0" step="5" value="${exercise.timer || 0}">
+            </label>
+          </div>
+          <label>
+            Notes
+            <textarea data-action="edit-field" data-field="details" data-id="${exercise.id}" placeholder="Hold 3s, thumbs back, right then left">${escapeHtml(exercise.details || "")}</textarea>
+          </label>
+          <div class="edit-actions">
+            <button class="secondary-btn" type="button" data-action="copy" data-id="${exercise.id}">Duplicate</button>
+            <button class="delete-btn" type="button" data-action="delete" data-id="${exercise.id}">Remove</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderExercise(exercise) {
+      const remaining = remainingSets(exercise);
+      const done = isDone(exercise);
+      const state = timerState(exercise.id);
+      const timerLabel = state ? formatTime(state.remaining) : formatTime(exercise.timer || 0);
+      const mainLabel = done ? "Completed" : remaining === 1 ? "Finish Exercise" : "Done Set " + ((exercise.sets || 1) - remaining + 1);
+      const chips = [
+        exercise.reps ? `${exercise.reps} reps` : "",
+        exercise.weight ? exercise.weight : "",
+        exercise.timer ? formatTime(exercise.timer) : ""
+      ].filter(Boolean);
+      const timerButton = exercise.timer ? `
+        <div class="timer-row">
+          <button class="timer-btn ${state?.running ? "running" : ""}" type="button" data-action="${state?.running ? "pause-timer" : state ? "resume-timer" : "start-timer"}" data-id="${exercise.id}">
+            ${state?.running ? "Pause " : state ? "Resume " : "Start "}${timerLabel}
+          </button>
+          <button class="timer-btn" type="button" data-action="reset-timer" data-id="${exercise.id}">Reset Timer</button>
+        </div>` : "";
+
+      return `
+        <article class="exercise ${done ? "done" : ""}" data-id="${exercise.id}">
+          <h3 class="exercise-name">${escapeHtml(exercise.name)}</h3>
+          <p class="detail">${escapeHtml(displayDetails(exercise))}</p>
+          ${chips.length ? `<div class="meta-chips">${chips.map((chip) => `<span class="chip">${escapeHtml(chip)}</span>`).join("")}</div>` : ""}
+          <p class="detail">${done ? "All sets done" : remaining + " set" + (remaining === 1 ? "" : "s") + " left"}</p>
+          <div class="card-actions">
+            ${timerButton}
+            <button class="main-tap ${done ? "done" : ""}" type="button" data-action="${done ? "undo" : "complete"}" data-id="${exercise.id}">
+              ${done ? "Tap to Undo" : mainLabel}
+            </button>
+          </div>
+          ${renderEditFields(exercise)}
+        </article>
+      `;
+    }
+
+    function renderSections() {
+      const activeIds = new Set(activeSections().map((section) => section.id));
+      sectionsNode.innerHTML = sections
+        .filter((section) => activeIds.has(section.id))
+        .map((section) => {
+          const list = exercises.filter((exercise) => exercise.section === section.id);
+          const done = list.filter(isDone).length;
+          return `
+            <section class="section">
+              <div class="section-head">
+                <h2>${section.title}</h2>
+                <div class="section-count">${done}/${list.length}</div>
+              </div>
+              <div class="exercise-list">
+                ${list.length ? list.map(renderExercise).join("") : `<div class="empty">No exercises in this section yet.</div>`}
+              </div>
+            </section>
+          `;
+        })
+        .join("");
+    }
+
+    function render() {
+      dateCopy.textContent = new Intl.DateTimeFormat(undefined, {
+        weekday: "long",
+        month: "short",
+        day: "numeric"
+      }).format(new Date());
+      app.classList.toggle("editing", editMode);
+      document.getElementById("editToggle").textContent = editMode ? "OK" : "+";
+      renderDayButtons();
+      renderProgress();
+      renderSections();
+    }
+
+    document.querySelectorAll(".day-btn").forEach((button) => {
+      button.addEventListener("click", () => {
+        dayChoice = button.dataset.day;
+        saveDayChoice(dayChoice);
+        render();
+      });
+    });
+
+    document.getElementById("editToggle").addEventListener("click", () => {
+      editMode = !editMode;
+      render();
+    });
+
+    document.getElementById("resetToday").addEventListener("click", () => {
+      if (timer?.interval) clearInterval(timer.interval);
+      timer = null;
+      progress[todayKey()] = {};
+      saveJson(PROGRESS_STORE, progress);
+      celebration.classList.remove("show");
+      render();
+    });
+
+    document.getElementById("showAll").addEventListener("click", () => maybeCelebrate(true));
+    document.getElementById("closeCelebration").addEventListener("click", () => celebration.classList.remove("show"));
+
+    document.getElementById("addExercise").addEventListener("click", () => {
+      const name = document.getElementById("newName").value.trim();
+      if (!name) return;
+      const item = {
+        id: "custom-" + Date.now(),
+        section: document.getElementById("newSection").value,
+        name,
+        reps: Math.max(0, Number(document.getElementById("newReps").value) || 0),
+        weight: document.getElementById("newWeight").value.trim(),
+        details: document.getElementById("newDetails").value.trim(),
+        sets: Math.max(1, Number(document.getElementById("newSets").value) || 1),
+        timer: Math.max(0, Number(document.getElementById("newTimer").value) || 0)
+      };
+      if (!item.reps) delete item.reps;
+      if (!item.weight) delete item.weight;
+      if (!item.timer) delete item.timer;
+      exercises.push(item);
+      saveJson(STORE, exercises);
+      document.getElementById("newName").value = "";
+      document.getElementById("newReps").value = "10";
+      document.getElementById("newWeight").value = "";
+      document.getElementById("newDetails").value = "";
+      document.getElementById("newSets").value = "2";
+      document.getElementById("newTimer").value = "0";
+      render();
+    });
+
+    sectionsNode.addEventListener("click", (event) => {
+      const button = event.target.closest("button[data-action]");
+      if (!button) return;
+      const exercise = exercises.find((item) => item.id === button.dataset.id);
+      if (!exercise) return;
+      const action = button.dataset.action;
+
+      if (action === "complete") completeSet(exercise);
+      if (action === "undo") undoSet(exercise);
+      if (action === "start-timer") startTimer(exercise);
+      if (action === "pause-timer") pauseTimer();
+      if (action === "resume-timer") resumeTimer();
+      if (action === "reset-timer") resetTimer(exercise.id);
+      if (action === "copy") {
+        exercises.push({
+          ...exercise,
+          id: "custom-" + Date.now(),
+          name: exercise.name + " Copy"
+        });
+        saveJson(STORE, exercises);
+        render();
+      }
+      if (action === "delete") {
+        exercises = exercises.filter((item) => item.id !== exercise.id);
+        saveJson(STORE, exercises);
+        render();
+      }
+    });
+
+    sectionsNode.addEventListener("change", (event) => {
+      const input = event.target.closest("[data-action='edit-field']");
+      if (!input) return;
+      const exercise = exercises.find((item) => item.id === input.dataset.id);
+      if (!exercise) return;
+      const field = input.dataset.field;
+      const raw = input.value.trim();
+      if (input.dataset.kind === "number") {
+        const number = Math.max(field === "sets" ? 1 : 0, Number(raw) || 0);
+        if (number) exercise[field] = number;
+        else delete exercise[field];
+      } else if (raw) {
+        exercise[field] = raw;
+      } else {
+        delete exercise[field];
+      }
+      if (field === "timer" && timer?.id === exercise.id) resetTimer(exercise.id);
+      saveJson(STORE, exercises);
+      render();
+    });
+
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./sw.js").catch(() => {});
+      });
+    }
+
+    renderSectionSelect();
+    render();
+  </script>
+</body>
+</html>
