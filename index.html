@@ -221,6 +221,7 @@
     let dayChoice = loadDayChoice();
     let editMode = false;
     let timer = null;
+    let audioContext = null;
 
     const app = document.getElementById("app");
     const sectionsNode = document.getElementById("sections");
@@ -338,6 +339,35 @@
       return timer;
     }
 
+    function unlockAudio() {
+      try {
+        const Audio = window.AudioContext || window.webkitAudioContext;
+        if (!Audio) return;
+        if (!audioContext) audioContext = new Audio();
+        if (audioContext.state === "suspended") audioContext.resume();
+      } catch {}
+    }
+
+    function playTimerChime() {
+      try {
+        unlockAudio();
+        if (!audioContext) return;
+        const now = audioContext.currentTime;
+        [660, 880, 1175].forEach((freq, index) => {
+          const osc = audioContext.createOscillator();
+          const gain = audioContext.createGain();
+          osc.type = "sine";
+          osc.frequency.value = freq;
+          gain.gain.setValueAtTime(0.0001, now + index * 0.16);
+          gain.gain.exponentialRampToValueAtTime(0.32, now + index * 0.16 + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + index * 0.16 + 0.14);
+          osc.connect(gain).connect(audioContext.destination);
+          osc.start(now + index * 0.16);
+          osc.stop(now + index * 0.16 + 0.16);
+        });
+      } catch {}
+    }
+
     function runTimerTick() {
       if (!timer) return;
       timer.remaining -= 1;
@@ -348,6 +378,7 @@
         timer.running = false;
         timer = null;
         if (navigator.vibrate) navigator.vibrate([150, 80, 150]);
+        playTimerChime();
         if (exercise) completeSet(exercise, { keepTimer: true });
         else render();
         return;
@@ -356,6 +387,7 @@
     }
 
     function startTimer(exercise) {
+      unlockAudio();
       if (timer?.interval) clearInterval(timer.interval);
       timer = { id: exercise.id, remaining: exercise.timer, interval: null, running: true };
       timer.interval = setInterval(runTimerTick, 1000);
@@ -370,6 +402,7 @@
     }
 
     function resumeTimer() {
+      unlockAudio();
       if (!timer) return;
       timer.running = true;
       timer.interval = setInterval(runTimerTick, 1000);
