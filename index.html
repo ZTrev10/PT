@@ -47,6 +47,9 @@
     .day-btn, .small-btn { min-height: 28px; border-radius: 999px; padding: 0 10px; background: var(--panel); color: var(--muted); box-shadow: inset 0 0 0 1px var(--line); font-weight: 900; font-size: 12px; white-space: nowrap; }
     .day-btn.active { background: var(--orange); color: white; box-shadow: none; }
     .small-btn.green { background: var(--green-soft); color: var(--green-dark); box-shadow: none; }
+    .small-btn.syncing { background: var(--blue-soft); color: var(--blue); box-shadow: none; }
+    .small-btn.sync-error { background: #fff1f0; color: var(--danger); box-shadow: none; }
+    .sync-status { color: var(--muted); font-size: 10px; font-weight: 900; padding: 7px 2px 0; white-space: nowrap; }
     .section { margin: 10px 0 14px; }
     .section-head { display: flex; align-items: end; justify-content: space-between; gap: 8px; margin: 0 2px 5px; }
     h2 { margin: 0; font-size: 15px; letter-spacing: -0.01em; }
@@ -114,8 +117,10 @@
         <div class="actions">
           <button class="small-btn" type="button" id="resetToday">Reset</button>
           <button class="small-btn green" type="button" id="showAll">All Clear</button>
+          <button class="small-btn" type="button" id="syncNow">Sync</button>
         </div>
       </div>
+      <div class="sync-status" id="syncStatus">Local only</div>
     </header>
 
     <section class="edit-panel" aria-label="Add exercise">
@@ -172,6 +177,9 @@
     const PROGRESS_STORE = "pt-done-progress-v1";
     const DAY_STORE = "pt-done-day-v1";
     const SESSION_STORE = "pt-done-session-v1";
+    const SYNC_META_STORE = "pt-done-sync-meta-v1";
+    const SYNC_KEYS = [STORE, PROGRESS_STORE, DAY_STORE, SESSION_STORE];
+    const SYNC_ENDPOINT = "/api/airtable";
 
     const sections = [
       { id: "vor", title: "Vestibulo-Ocular Reflex", cadence: "daily" },
@@ -222,12 +230,16 @@
     let editMode = false;
     let timer = null;
     let audioContext = null;
+    let syncMeta = loadJson(SYNC_META_STORE, {});
+    let syncState = { busy: false, enabled: false, lastError: "", timer: null };
 
     const app = document.getElementById("app");
     const sectionsNode = document.getElementById("sections");
     const progressFill = document.getElementById("progressFill");
     const progressLabel = document.getElementById("progressLabel");
     const celebration = document.getElementById("celebration");
+    const syncNow = document.getElementById("syncNow");
+    const syncStatus = document.getElementById("syncStatus");
 
     function pacificDateParts(date = new Date()) {
       const parts = new Intl.DateTimeFormat("en-CA", {
@@ -261,6 +273,17 @@
 
     function saveJson(key, value) {
       localStorage.setItem(key, JSON.stringify(value));
+      if (SYNC_KEYS.includes(key)) markDirty(key);
+    }
+
+    function saveLocalOnly(key, value) {
+      localStorage.setItem(key, JSON.stringify(value));
+    }
+
+    function markDirty(key) {
+      syncMeta[key] = Date.now();
+      saveLocalOnly(SYNC_META_STORE, syncMeta);
+      queueSync();
     }
 
     function normalizeExercise(exercise) {
@@ -596,9 +619,101 @@
     function render() {
       app.classList.toggle("editing", editMode);
       document.getElementById("editToggle").textContent = editMode ? "OK" : "+";
+      renderSyncStatus();
       renderDayButtons();
       renderProgress();
       renderSections();
+    }
+
+    function syncPayload() {
+      let changed = false;
+      const payload = Object.fromEntries(SYNC_KEYS.map((key) => {
+        const fallback = key === STORE ? [] : {};
+        if (!syncMeta[key]) {
+          syncMeta[key] = Date.now();
+          changed = true;
+        }
+        return [key, {
+          updatedAt: syncMeta[key],
+          value: loadJson(key, fallback)
+        }];
+      }));
+      if (changed) saveLocalOnly(SYNC_META_STORE, syncMeta);
+      return payload;
+    }
+
+    function applyRemoteData(data) {
+      let changed = false;
+      SYNC_KEYS.forEach((key) => {
+        const remote = data?.[key];
+        if (!remote || !Object.prototype.hasOwnProperty.call(remote, "value")) return;
+        const remoteUpdatedAt = Number(remote.updatedAt) || 0;
+        const localUpdatedAt = Number(syncMeta[key]) || 0;
+        const hasLocalTimestamp = Object.prototype.hasOwnProperty.call(syncMeta, key);
+        if (!hasLocalTimestamp || remoteUpdatedAt > localUpdatedAt) {
+          saveLocalOnly(key, remote.value);
+          syncMeta[key] = remoteUpdatedAt;
+          changed = true;
+        }
+      });
+      if (changed) {
+        saveLocalOnly(SYNC_META_STORE, syncMeta);
+        exercises = loadExercises();
+        progress = loadJson(PROGRESS_STORE, {});
+        dayChoice = loadDayChoice();
+        if (timer?.interval) clearInterval(timer.interval);
+        timer = null;
+        celebration.classList.remove("show");
+        render();
+      }
+      return changed;
+    }
+
+    function renderSyncStatus() {
+      if (!syncNow || !syncStatus) return;
+      syncNow.classList.toggle("syncing", syncState.busy);
+      syncNow.classList.toggle("sync-error", Boolean(syncState.lastError));
+      syncNow.textContent = syncState.busy ? "Syncing" : syncState.lastError ? "Retry Sync" : "Sync";
+      syncStatus.textContent = syncState.busy
+        ? "Syncing to Airtable..."
+        : syncState.lastError
+          ? "Sync paused: " + syncState.lastError
+          : syncState.enabled
+            ? "Airtable sync on"
+            : "Local only";
+    }
+
+    function queueSync() {
+      if (!syncState.enabled) return;
+      if (syncState.timer) clearTimeout(syncState.timer);
+      syncState.timer = setTimeout(() => syncWithAirtable("push"), 700);
+    }
+
+    async function syncWithAirtable(mode = "push") {
+      if (syncState.busy) return;
+      syncState.busy = true;
+      syncState.lastError = "";
+      renderSyncStatus();
+      try {
+        const options = mode === "pull"
+          ? { method: "GET" }
+          : {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ data: syncPayload() })
+            };
+        const response = await fetch(SYNC_ENDPOINT, options);
+        const body = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(body.error || "Sync failed");
+        syncState.enabled = true;
+        applyRemoteData(body.data || {});
+        if (mode === "pull") queueSync();
+      } catch (error) {
+        syncState.lastError = error.message || "Sync failed";
+      } finally {
+        syncState.busy = false;
+        renderSyncStatus();
+      }
     }
 
     document.querySelectorAll(".day-btn").forEach((button) => {
@@ -625,6 +740,7 @@
 
     document.getElementById("showAll").addEventListener("click", () => maybeCelebrate(true));
     document.getElementById("closeCelebration").addEventListener("click", () => celebration.classList.remove("show"));
+    syncNow.addEventListener("click", () => syncWithAirtable("push"));
 
     document.getElementById("addExercise").addEventListener("click", () => {
       const name = document.getElementById("newName").value.trim();
@@ -690,6 +806,28 @@
     });
 
     sectionsNode.addEventListener("click", (event) => {
+      const editButton = event.target.closest("button[data-action='copy'], button[data-action='delete']");
+      if (editButton) {
+        const exercise = exercises.find((item) => item.id === editButton.dataset.id);
+        if (!exercise) return;
+        const action = editButton.dataset.action;
+        if (action === "copy") {
+          exercises.push({
+            ...exercise,
+            id: "custom-" + Date.now(),
+            name: exercise.name + " Copy"
+          });
+          saveJson(STORE, exercises);
+          render();
+        }
+        if (action === "delete") {
+          exercises = exercises.filter((item) => item.id !== exercise.id);
+          saveJson(STORE, exercises);
+          render();
+        }
+        return;
+      }
+
       const button = cardActionTarget(event);
       if (!button) return;
       const exercise = exercises.find((item) => item.id === button.dataset.id);
@@ -709,21 +847,6 @@
           return;
         }
         if (!isDone(exercise)) toggleTimer(exercise);
-      }
-      if (action === "undo") undoSet(exercise);
-      if (action === "copy") {
-        exercises.push({
-          ...exercise,
-          id: "custom-" + Date.now(),
-          name: exercise.name + " Copy"
-        });
-        saveJson(STORE, exercises);
-        render();
-      }
-      if (action === "delete") {
-        exercises = exercises.filter((item) => item.id !== exercise.id);
-        saveJson(STORE, exercises);
-        render();
       }
     });
 
@@ -756,6 +879,7 @@
 
     renderSectionSelect();
     render();
+    syncWithAirtable("pull");
   </script>
 </body>
 </html>
