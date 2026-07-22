@@ -1,5 +1,6 @@
 const AIRTABLE_API = "https://api.airtable.com/v0";
 const DEFAULT_TABLE = "PT Sync";
+const SYNC_KEY = "pt-state";
 
 function json(res, status, body) {
   res.statusCode = status;
@@ -46,7 +47,18 @@ async function airtableFetch(config, url, options = {}) {
   return body;
 }
 
-async function listRecords(config) {
+async function findSyncRecord(config) {
+  const params = new URLSearchParams({
+    pageSize: "1",
+    filterByFormula: `{Key}='${SYNC_KEY}'`
+  });
+  params.append("fields[]", "Key");
+  params.append("fields[]", "Data");
+  const body = await airtableFetch(config, tableUrl(config, `?${params.toString()}`));
+  return body.records?.[0] || null;
+}
+
+async function listLegacyRecords(config) {
   const records = [];
   let offset = "";
   do {
@@ -61,15 +73,6 @@ async function listRecords(config) {
   return records;
 }
 
-async function getRecordMap(config) {
-  const records = await listRecords(config);
-  return records.reduce((acc, record) => {
-    const key = record.fields?.Key;
-    if (key) acc[key] = record;
-    return acc;
-  }, {});
-}
-
 function decodeRecord(record) {
   try {
     return JSON.parse(record.fields?.Data || "{}");
@@ -79,30 +82,32 @@ function decodeRecord(record) {
 }
 
 async function pull(config) {
-  const map = await getRecordMap(config);
-  return Object.fromEntries(
-    Object.entries(map).map(([key, record]) => [key, decodeRecord(record)])
-  );
+  const record = await findSyncRecord(config);
+  if (record) return decodeRecord(record);
+
+  const records = await listLegacyRecords(config);
+  return records.reduce((acc, legacyRecord) => {
+    const key = legacyRecord.fields?.Key;
+    if (key && key !== SYNC_KEY) acc[key] = decodeRecord(legacyRecord);
+    return acc;
+  }, {});
 }
 
 async function push(config, data) {
-  const existing = await getRecordMap(config);
-  const keys = Object.keys(data || {});
-  await Promise.all(keys.map((key) => {
-    const fields = { Key: key, Data: JSON.stringify(data[key] ?? {}) };
-    const record = existing[key];
-    if (record) {
-      return airtableFetch(config, tableUrl(config, `/${record.id}`), {
-        method: "PATCH",
-        body: JSON.stringify({ fields })
-      });
-    }
-    return airtableFetch(config, tableUrl(config), {
+  const record = await findSyncRecord(config);
+  const fields = { Key: SYNC_KEY, Data: JSON.stringify(data || {}) };
+  if (record) {
+    await airtableFetch(config, tableUrl(config, `/${record.id}`), {
+      method: "PATCH",
+      body: JSON.stringify({ fields })
+    });
+  } else {
+    await airtableFetch(config, tableUrl(config), {
       method: "POST",
       body: JSON.stringify({ fields })
     });
-  }));
-  return pull(config);
+  }
+  return data || {};
 }
 
 module.exports = async function handler(req, res) {

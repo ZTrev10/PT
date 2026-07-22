@@ -16,3 +16,6 @@ Set these environment variables wherever the app is hosted:
 - `AIRTABLE_TABLE_NAME`: optional, defaults to `PT Sync`
 
 The app keeps working locally if sync is not configured. Once configured, open the app and tap `Sync` on each device.
+
+The sync stores the app state in one Airtable row with `Key` set to `pt-state`.
+Routine edits, day changes, resets, completed sessions, and manual `Sync` pushes are treated as notable changes. Individual set taps stay local until the session is complete or `Sync` is tapped.

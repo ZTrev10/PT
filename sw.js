@@ -1,4 +1,4 @@
-const CACHE = "pt-done-v8";
+const CACHE = "pt-done-v10";
 const ASSETS = ["./", "./index.html", "./manifest.webmanifest", "./icon.svg"];
 
 self.addEventListener("install", (event) => {

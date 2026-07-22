@@ -271,9 +271,9 @@
       }
     }
 
-    function saveJson(key, value) {
+    function saveJson(key, value, options = {}) {
       localStorage.setItem(key, JSON.stringify(value));
-      if (SYNC_KEYS.includes(key)) markDirty(key);
+      if (SYNC_KEYS.includes(key) && options.notable !== false) markDirty(key);
     }
 
     function saveLocalOnly(key, value) {
@@ -450,7 +450,7 @@
       const current = today[exercise.id] || 0;
       today[exercise.id] = Math.min(exercise.sets || 1, current + 1);
       if (!options.keepTimer && timer?.id === exercise.id) resetTimer(exercise.id);
-      saveJson(PROGRESS_STORE, progress);
+      saveJson(PROGRESS_STORE, progress, { notable: false });
       render();
       maybeCelebrate();
     }
@@ -459,7 +459,7 @@
       const today = todaysProgress();
       today[exercise.id] = 0;
       if (timer?.id === exercise.id) resetTimer(exercise.id);
-      saveJson(PROGRESS_STORE, progress);
+      saveJson(PROGRESS_STORE, progress, { notable: false });
       render();
     }
 
@@ -475,7 +475,10 @@
       const list = activeExercises();
       const allDone = list.length > 0 && list.every(isDone);
       if (force || allDone) {
-        if (allDone) saveCompletedSession();
+        if (allDone) {
+          saveJson(PROGRESS_STORE, progress);
+          saveCompletedSession();
+        }
         celebration.classList.add("show");
       }
     }
@@ -625,12 +628,13 @@
       renderSections();
     }
 
-    function syncPayload() {
+    function syncPayload(forceFresh = false) {
       let changed = false;
+      const now = Date.now();
       const payload = Object.fromEntries(SYNC_KEYS.map((key) => {
         const fallback = key === STORE ? [] : {};
-        if (!syncMeta[key]) {
-          syncMeta[key] = Date.now();
+        if (forceFresh || !syncMeta[key]) {
+          syncMeta[key] = now;
           changed = true;
         }
         return [key, {
@@ -700,14 +704,13 @@
           : {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ data: syncPayload() })
+              body: JSON.stringify({ data: syncPayload(true) })
             };
         const response = await fetch(SYNC_ENDPOINT, options);
         const body = await response.json().catch(() => ({}));
         if (!response.ok) throw new Error(body.error || "Sync failed");
         syncState.enabled = true;
         applyRemoteData(body.data || {});
-        if (mode === "pull") queueSync();
       } catch (error) {
         syncState.lastError = error.message || "Sync failed";
       } finally {
